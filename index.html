@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Futures Position Size Calculator | RiskBuddy</title>
+  <meta name="description" content="Free futures position size calculator for ES, NQ, CL, GC, and 30+ CME contracts. Enter your account size, risk %, and stop loss — instantly see max contracts, total risk, and micro alternatives. No signup.">
+  <meta name="keywords" content="futures position size calculator, futures risk calculator, ES position sizing, NQ position sizing, prop firm calculator, day trading risk management, futures stop loss calculator, max contracts calculator">
+  <meta name="robots" content="index, follow">
+  <meta name="author" content="RiskBuddy">
+  <link rel="canonical" href="https://riskbuddy.app/">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Futures Position Size Calculator | RiskBuddy">
+  <meta property="og:description" content="Instantly size futures positions across 30+ CME contracts. Set your account risk %, enter a stop loss, get max contracts and micro alternatives. Free, no signup.">
+  <meta property="og:image" content="https://riskbuddy.app/og-image.png">
+  <meta property="og:url" content="https://riskbuddy.app/">
+  <meta property="og:site_name" content="RiskBuddy">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Futures Position Size Calculator | RiskBuddy">
+  <meta name="twitter:description" content="Free futures risk calculator for ES, NQ, CL, GC, and 30+ contracts. Risk first. Size second.">
+
+  <!-- JSON-LD Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "RiskBuddy – Futures Position Size Calculator",
+    "url": "https://riskbuddy.app/",
+    "description": "Free futures position size and risk calculator for day traders and prop firm evaluators. Supports 30+ CME and CBOT contracts including ES, NQ, CL, GC, and all major micro contracts.",
+    "applicationCategory": "FinanceApplication",
+    "operatingSystem": "Web",
+    "browserRequirements": "Requires JavaScript",
+    "featureList": "Position sizing, risk per contract, micro contract alternatives, point/tick converter, 30+ futures contracts",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+    "author": { "@type": "Organization", "name": "RiskBuddy", "url": "https://riskbuddy.app/" }
+  }
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "What is position sizing in futures trading?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Position sizing is the process of determining how many contracts to trade based on your account size, risk tolerance, and stop loss distance. Proper position sizing prevents any single trade from causing excessive damage to your account." }
+      },
+      {
+        "@type": "Question",
+        "name": "How is the max contracts number calculated?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Max contracts = floor(Max Risk $ ÷ Risk per Contract). Risk per contract = stop loss (in points) × point value. For example, a 10-point stop on ES has a risk of 10 × $50 = $500 per contract. With a $1,000 risk budget, you can trade 2 contracts." }
+      },
+      {
+        "@type": "Question",
+        "name": "What is the difference between points and ticks in futures?",
+        "acceptedAnswer": { "@type": "Answer", "text": "A tick is the minimum price increment for a futures contract. A point equals one full unit of price movement. For ES (E-mini S&P 500), one tick = 0.25 points = $12.50, so there are 4 ticks per point. For YM (E-mini Dow), one tick = 1 point = $5.00." }
+      }
+    ]
+  }
+  </script>
+
+  <link rel="stylesheet" href="calculator.css">
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════
+     HEADER
+═══════════════════════════════════════════════════════ -->
+<header class="site-header">
+  <div class="wrap">
+    <div class="brand-name" aria-label="RiskBuddy">RiskBuddy</div>
+    <h1>Futures Position Size Calculator</h1>
+    <p class="tagline">Instantly calculate max contracts, total risk &amp; micro alternatives — free, no signup</p>
+    <div class="header-badges">
+      <span class="hbadge">30+ Contracts</span>
+      <span class="hbadge">ES · NQ · CL · GC · BTC</span>
+      <span class="hbadge">Micro Alternatives</span>
+      <span class="hbadge">Works Offline</span>
+    </div>
+  </div>
+</header>
+
+<!-- ════════════════════════════════════════════════════
+     MAIN
+═══════════════════════════════════════════════════════ -->
+<main>
+<div class="wrap">
+
+  <!-- ── Calculator ────────────────────────────────── -->
+  <section aria-label="Position Size Calculator">
+    <div class="calc-grid">
+
+      <!-- LEFT: Inputs -->
+      <div class="card">
+        <p class="card-title">Risk Parameters</p>
+
+        <!-- Risk Mode -->
+        <div class="fg">
+          <label class="lbl">Risk Mode</label>
+          <div class="tg">
+            <input type="radio" name="risk-mode" id="mode-pct" value="percent">
+            <label for="mode-pct">% of Account</label>
+            <input type="radio" name="risk-mode" id="mode-fixed" value="fixed">
+            <label for="mode-fixed">Fixed $</label>
+          </div>
+          <div id="risk-computed"></div>
+        </div>
+
+        <!-- Account Size -->
+        <div class="fg" id="row-account">
+          <label class="lbl" for="account-size">Account Size</label>
+          <div class="prefix-wrap">
+            <span class="prefix">$</span>
+            <input type="number" id="account-size" min="0" step="500" placeholder="25000">
+          </div>
+        </div>
+
+        <!-- Risk % -->
+        <div class="fg" id="row-percent">
+          <label class="lbl" for="risk-percent">Risk Percentage</label>
+          <div class="prefix-wrap">
+            <span class="prefix">%</span>
+            <input type="number" id="risk-percent" min="0.01" max="100" step="0.1" placeholder="1.0">
+          </div>
+        </div>
+
+        <!-- Risk Fixed $ -->
+        <div class="fg" id="row-fixed" style="display:none;">
+          <label class="lbl" for="risk-fixed">Max Risk per Trade</label>
+          <div class="prefix-wrap">
+            <span class="prefix">$</span>
+            <input type="number" id="risk-fixed" min="1" step="25" placeholder="250">
+          </div>
+        </div>
+
+        <hr class="card-divider">
+        <p class="card-title">Trade Setup</p>
+
+        <!-- Instrument -->
+        <div class="fg">
+          <label class="lbl" for="instrument">Instrument</label>
+          <div class="instrument-row">
+            <select id="instrument" aria-label="Select futures contract"></select>
+            <button type="button" id="qs-fav-btn" class="qs-fav-btn" title="Add to quick select">☆</button>
+          </div>
+          <!-- Quick Select chips -->
+          <div class="qs-bar" id="qs-bar">
+            <div class="qs-chips" id="qs-chips" role="group" aria-label="Favorite instruments"></div>
+            <button type="button" class="qs-edit-btn" id="qs-edit-btn" aria-label="Edit favorite instruments">✎ Edit</button>
+          </div>
+        </div>
+
+        <!-- Stop Loss -->
+        <div class="fg">
+          <label class="lbl">Stop Loss Distance</label>
+          <div class="stop-row">
+            <input type="number" id="stop-loss" min="0.01" step="any" placeholder="e.g. 10">
+            <div class="tg" style="width:150px;flex-shrink:0;">
+              <input type="radio" name="unit" id="unit-pts" value="points">
+              <label for="unit-pts">Points</label>
+              <input type="radio" name="unit" id="unit-ticks" value="ticks">
+              <label for="unit-ticks">Ticks</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Results -->
+      <div class="card">
+        <p class="card-title">Position Size Result</p>
+        <div id="result-panel" aria-live="polite" aria-atomic="true">
+          <div class="result-empty">Enter your parameters to see results.</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── Quick Converter ──────────────────────────── -->
+  <section class="converter-section" aria-label="Point and Tick Value Converter">
+    <div class="card">
+      <p class="card-title">Quick Point / Tick → Dollar Converter</p>
+      <div class="converter-row">
+        <div class="fg" style="margin:0;">
+          <label class="lbl" for="cv-instrument">Instrument</label>
+          <select id="cv-instrument" aria-label="Converter instrument"></select>
+        </div>
+        <div class="fg" style="margin:0;">
+          <label class="lbl" for="cv-amount">Amount</label>
+          <input type="number" id="cv-amount" min="0" step="any" placeholder="e.g. 10">
+        </div>
+        <div class="fg" style="margin:0;">
+          <label class="lbl">Unit</label>
+          <div class="tg">
+            <input type="radio" name="cv-unit" id="cv-pts" value="points">
+            <label for="cv-pts">Points</label>
+            <input type="radio" name="cv-unit" id="cv-tks" value="ticks">
+            <label for="cv-tks">Ticks</label>
+          </div>
+        </div>
+        <div class="cv-result-box">
+          <span class="cv-result-label">Dollar Value</span>
+          <span id="cv-result">—</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Methodology ─────────────────────────────── -->
+  <section class="method-section" aria-labelledby="method-heading">
+    <div class="method-card">
+      <div class="method-header">
+        <div class="method-title-group">
+          <span class="method-eyebrow">The Approach</span>
+          <h2 class="method-heading" id="method-heading">Risk first. Size second.</h2>
+          <p class="method-hook">Most calculators start with margin and leverage. This one starts with how much cash you can afford to lose — because that's the only number that actually matters.</p>
+        </div>
+        <button class="btn-ghost method-toggle" id="toggle-method" aria-expanded="false" aria-controls="method-body">
+          Read the methodology ▼
+        </button>
+      </div>
+
+      <div id="method-body" class="method-body" hidden>
+        <div class="method-steps">
+
+          <div class="method-step">
+            <div class="step-num">01</div>
+            <div class="step-content">
+              <h3>Establish the Max Risk Bound First</h3>
+              <p>Before charts, before technicals — you set your maximum dollar loss for this trade. Not based on margin. Not based on overall equity. A fixed cash amount: your <strong>absolute shield</strong>. Dynamic variables like account leverage can create a false sense of security. This number doesn't move.</p>
+            </div>
+          </div>
+
+          <div class="method-step">
+            <div class="step-num">02</div>
+            <div class="step-content">
+              <h3>Calculate the True Cost of One Contract</h3>
+              <p>Futures contracts have rigid, immutable specifications. Your stop loss distance in points or ticks immediately yields an exact dollar cost per contract: <strong>Stop Distance × Contract Multiplier</strong>. There is no ambiguity — you know precisely what one contract costs you if stopped out, before you place a single order.</p>
+            </div>
+          </div>
+
+          <div class="method-step">
+            <div class="step-num">03</div>
+            <div class="step-content">
+              <h3>Apply the Decision Matrix</h3>
+              <p>With your risk ceiling and contract cost defined, the engine outputs one of three outcomes — the same three you see in the results panel:</p>
+              <div class="decision-matrix">
+                <div class="dm-row dm-green">
+                  <span class="dm-icon">✓</span>
+                  <div><strong>Approved</strong> — contract risk fits your budget. The engine maximizes your exposure safely via integer division and generates a scale-in suggestion for layered entries.</div>
+                </div>
+                <div class="dm-row dm-amber">
+                  <span class="dm-icon">⚡</span>
+                  <div><strong>Alternative</strong> — one standard contract exceeds your limit. The engine immediately evaluates the micro equivalent at the exact same stop, letting you execute the same technical setup at a safe size. Most calculators just say "insufficient margin." This one finds you a path.</div>
+                </div>
+                <div class="dm-row dm-red">
+                  <span class="dm-icon">✕</span>
+                  <div><strong>Rejected</strong> — even the micro contract exceeds your ceiling, or no micro exists for the instrument. The engine rejects the trade entirely. No rationalization. No override. Protect capital and sit out.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+        <p class="method-closing">This keeps your focus entirely on controlling losses first and sizing second — the cornerstone of professional-grade capital preservation.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Email Capture ────────────────────────────── -->
+  <section class="capture-section" aria-labelledby="capture-heading">
+    <div class="capture-card">
+      <div class="capture-copy">
+        <p class="capture-eyebrow">Free Download</p>
+        <h2 id="capture-heading">Futures Position Sizing Cheat Sheet</h2>
+        <p class="capture-desc">Every CME contract's point value, tick value, and micro equivalent — one printable reference page. Plus get notified first when new RiskBuddy features drop.</p>
+        <ul class="capture-list">
+          <li>30+ contracts at a glance</li>
+          <li>Key risk formulas explained</li>
+          <li>Micro equivalents reference</li>
+          <li>Early access to new features</li>
+        </ul>
+      </div>
+      <div class="capture-form">
+        <form id="kit-form" class="kit-form" novalidate>
+          <label class="kit-label" for="kit-email">Your email address</label>
+          <input
+            type="email"
+            id="kit-email"
+            class="kit-input"
+            placeholder="trader@email.com"
+            required
+            autocomplete="email"
+          >
+          <button type="submit" class="kit-submit" id="kit-submit">
+            Send me the cheat sheet →
+          </button>
+          <p class="kit-privacy">No spam. Unsubscribe anytime. · Can't find it? Check your spam folder.</p>
+        </form>
+        <div id="kit-success" class="kit-success" hidden>
+          <div class="kit-success-icon">✓</div>
+          <p><strong>You're in — check your inbox.</strong></p>
+          <p class="kit-success-sub">Your cheat sheet is on its way. We'll also notify you when new features drop.</p>
+        </div>
+        <div id="kit-error" class="kit-error" hidden>
+          <p>Something went wrong. Try again or refresh the page.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Contracts Reference ──────────────────────── -->
+  <section class="contracts-section" aria-label="Futures Contracts Reference Table">
+    <div class="section-hd">
+      <h2>Supported Contracts Reference</h2>
+      <button class="btn-ghost" id="toggle-contracts" aria-expanded="false" aria-controls="contracts-wrap">
+        View all contracts ▼
+      </button>
+    </div>
+    <div id="contracts-wrap" role="region" aria-label="Contracts table">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Symbol</th>
+            <th scope="col">Contract Name</th>
+            <th scope="col">Micro</th>
+            <th scope="col" class="r">Point Value</th>
+            <th scope="col" class="r">Tick Value</th>
+            <th scope="col" class="r">Tick Size</th>
+          </tr>
+        </thead>
+        <tbody id="contracts-tbody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ── How It Works ─────────────────────────────── -->
+  <section class="how-section" aria-labelledby="how-heading">
+    <h2 id="how-heading">How to Use This Calculator</h2>
+    <div class="how-grid">
+      <div class="how-card">
+        <div class="how-num">Step 1</div>
+        <strong>Set Your Risk Budget</strong>
+        <p>Enter your account size and risk percentage (e.g. 1%), or switch to a fixed dollar amount. Your max-risk-per-trade updates live.</p>
+      </div>
+      <div class="how-card">
+        <div class="how-num">Step 2</div>
+        <strong>Choose Your Instrument</strong>
+        <p>Select from 30+ CME and CBOT contracts — from ES, NQ, and YM to Crude Oil, Gold, and Bitcoin. Micro contracts are included.</p>
+      </div>
+      <div class="how-card">
+        <div class="how-num">Step 3</div>
+        <strong>Enter Your Stop Loss</strong>
+        <p>Type your stop distance in points or ticks. Results update instantly — no button to click.</p>
+      </div>
+      <div class="how-card">
+        <div class="how-num">Step 4</div>
+        <strong>Review Your Plan</strong>
+        <p>If the standard contract exceeds your limit, the calculator automatically shows the micro equivalent at the same stop distance.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FAQ ──────────────────────────────────────── -->
+  <section class="faq-section" aria-labelledby="faq-heading">
+    <h2 id="faq-heading">Frequently Asked Questions</h2>
+
+    <div class="faq-item">
+      <button class="faq-q" aria-expanded="false">
+        What is position sizing in futures trading?
+        <span class="faq-icon" aria-hidden="true">+</span>
+      </button>
+      <div class="faq-a">
+        <p>Position sizing is the process of determining how many contracts to trade based on your account size, risk tolerance, and stop loss distance. It's one of the most critical skills in futures trading — proper sizing prevents any single losing trade from doing excessive damage to your account. A common rule is to never risk more than 1–2% of your account on any single trade.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-q" aria-expanded="false">
+        How is the max contracts number calculated?
+        <span class="faq-icon" aria-hidden="true">+</span>
+      </button>
+      <div class="faq-a">
+        <p><strong>Max contracts = floor(Max Risk $ ÷ Risk per Contract)</strong></p>
+        <p style="margin-top:0.5rem;">Risk per contract = stop loss (points) × point value. Example: a 10-point stop on ES costs 10 × $50 = $500 per contract. With a $1,000 risk budget: floor($1,000 ÷ $500) = <strong>2 contracts</strong>, for a total risk of exactly $1,000.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-q" aria-expanded="false">
+        What is the difference between points and ticks?
+        <span class="faq-icon" aria-hidden="true">+</span>
+      </button>
+      <div class="faq-a">
+        <p>A <strong>tick</strong> is the minimum price increment for a futures contract. A <strong>point</strong> equals one full integer unit of price movement. For ES (E-mini S&P 500): 1 tick = 0.25 points = $12.50, so there are 4 ticks per point. For YM (E-mini Dow): 1 tick = 1 point = $5.00. Use the converter tool above to quickly check values for any contract.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-q" aria-expanded="false">
+        When should I use a micro contract?
+        <span class="faq-icon" aria-hidden="true">+</span>
+      </button>
+      <div class="faq-a">
+        <p>Use micro contracts (MES, MNQ, MYM, M2K, MGC, MCL, etc.) when your stop distance makes the standard contract too risky for your account size. Micros are exactly 1/10th the size of their standard equivalents. This lets you trade with proper position sizing on smaller accounts, or use a wider stop without increasing dollar risk beyond your limit.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-q" aria-expanded="false">
+        What risk percentage should I use?
+        <span class="faq-icon" aria-hidden="true">+</span>
+      </button>
+      <div class="faq-a">
+        <p>Most professional traders risk <strong>0.5%–2%</strong> per trade. A standard starting point is <strong>1%</strong>. For prop firm evaluations, check the firm's specific daily loss and max drawdown rules — risking 1% may be too aggressive depending on the evaluation's parameters. Conservative traders often use 0.25%–0.5% during difficult market conditions.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-q" aria-expanded="false">
+        Does this calculator include commissions?
+        <span class="faq-icon" aria-hidden="true">+</span>
+      </button>
+      <div class="faq-a">
+        <p>No — this calculator shows gross risk based on price movement only. Add your round-trip commission cost manually. Retail futures commissions typically range from $3–$8 per contract round-trip depending on your broker. For micros, commissions are often $0.50–$1.50 per contract.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-q" aria-expanded="false">
+        Is my data saved? Does this require an account?
+        <span class="faq-icon" aria-hidden="true">+</span>
+      </button>
+      <div class="faq-a">
+        <p>Your settings (account size, risk %, and instrument) are saved locally in your browser using <code>localStorage</code>. <strong>Nothing is sent to any server.</strong> There is no account, no signup, and no tracking. This tool works completely offline once loaded.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-q" aria-expanded="false">
+        Which futures exchanges are covered?
+        <span class="faq-icon" aria-hidden="true">+</span>
+      </button>
+      <div class="faq-a">
+        <p>This calculator covers products traded on the <strong>CME Group</strong> exchanges (CME, CBOT, NYMEX, COMEX), including all major E-mini and Micro E-mini equity index futures, metals, energy, interest rates, currencies, and Bitcoin futures. View the full list by expanding the Supported Contracts table above.</p>
+      </div>
+    </div>
+
+  </section>
+
+</div><!-- /wrap -->
+</main>
+
+<!-- ════════════════════════════════════════════════════
+     FOOTER
+═══════════════════════════════════════════════════════ -->
+<footer class="site-footer">
+  <div class="wrap">
+    <a href="https://ko-fi.com/riskbuddy" target="_blank" rel="noopener noreferrer" class="kofi-btn">
+      ☕ Support RiskBuddy on Ko-fi
+    </a>
+    <p class="footer-brand">RiskBuddy &mdash; <a href="https://riskbuddy.app/">riskbuddy.app</a></p>
+    <p>For educational purposes only. Not financial advice. Always verify contract specifications with your broker before trading.</p>
+  </div>
+</footer>
+
+<script src="calculator.js"></script>
+</body>
+</html>

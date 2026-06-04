@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Futures Position Sizing Cheat Sheet | RiskBuddy</title>
+  <style>
+    /* ── Base — sized for one landscape Letter page ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    @page { size: Letter landscape; margin: 0.55cm 0.8cm; }
+
+    html { font-size: 7.5pt; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      color: #0f1117;
+      background: #fff;
+      padding: 0.55cm 0.8cm;
+      max-width: 29cm;
+      margin: 0 auto;
+    }
+
+    /* ── Header ── */
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2.5px solid #3b7fff;
+      padding-bottom: 0.3rem;
+      margin-bottom: 0.55rem;
+    }
+    .header-left h1 {
+      font-size: 12pt;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #0f1117;
+      line-height: 1.1;
+    }
+    .header-left p { font-size: 6.5pt; color: #64748b; margin-top: 0.1rem; }
+    .header-right { text-align: right; }
+    .brand { font-size: 9pt; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: #3b7fff; }
+    .brand-url { font-size: 6.5pt; color: #94a3b8; display: block; margin-top: 0.05rem; }
+
+    /* ── Formulas ── */
+    .formulas {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.35rem;
+      margin-bottom: 0.55rem;
+    }
+    .formula-box {
+      background: #f8faff;
+      border: 1px solid #dbeafe;
+      border-left: 2.5px solid #3b7fff;
+      border-radius: 3px;
+      padding: 0.28rem 0.45rem;
+    }
+    .formula-label {
+      font-size: 6pt;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #64748b;
+      margin-bottom: 0.12rem;
+    }
+    .formula-eq {
+      font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+      font-size: 7pt;
+      font-weight: 600;
+      color: #1e3a8a;
+      line-height: 1.35;
+    }
+    .formula-note { font-size: 6pt; color: #94a3b8; margin-top: 0.1rem; line-height: 1.3; }
+
+    /* ── Tables ── */
+    .section-label {
+      font-size: 6pt;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      color: #94a3b8;
+      margin-bottom: 0.15rem;
+      margin-top: 0.5rem;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 7pt; }
+    thead th {
+      background: #f1f5f9;
+      color: #475569;
+      font-size: 6pt;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 0.18rem 0.35rem;
+      text-align: left;
+      border-bottom: 1px solid #e2e8f0;
+      white-space: nowrap;
+    }
+    thead th.r { text-align: right; }
+    tbody tr { border-bottom: 1px solid #f1f5f9; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody td { padding: 0.13rem 0.35rem; color: #334155; vertical-align: middle; }
+    tbody td.sym {
+      font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+      font-weight: 700; color: #1e40af; font-size: 7pt;
+      white-space: nowrap;
+    }
+    tbody td.r   { text-align: right; font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace; white-space: nowrap; }
+    tbody td.micro { color: #64748b; font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace; }
+
+    /* ── Two-column layout ── */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; }
+
+    /* ── Decision Matrix ── */
+    .matrix {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.3rem;
+      margin-top: 0.55rem;
+    }
+    .matrix-box { border-radius: 3px; padding: 0.3rem 0.45rem; border: 1px solid; }
+    .matrix-box .m-label {
+      font-size: 6.5pt;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.1rem;
+    }
+    .matrix-box p { font-size: 6.5pt; color: #475569; line-height: 1.4; }
+    .m-green { background: #f0fdf4; border-color: #86efac; }
+    .m-green .m-label { color: #16a34a; }
+    .m-amber { background: #fffbeb; border-color: #fcd34d; }
+    .m-amber .m-label { color: #d97706; }
+    .m-red   { background: #fef2f2; border-color: #fca5a5; }
+    .m-red   .m-label { color: #dc2626; }
+
+    /* ── Footer ── */
+    .page-footer {
+      margin-top: 0.45rem;
+      padding-top: 0.3rem;
+      border-top: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 6pt;
+      color: #94a3b8;
+    }
+
+    /* ── Print — force single page, suppress print bar ── */
+    @media print {
+      .no-print { display: none !important; }
+      body { padding: 0; }
+    }
+
+    /* ── Screen-only print prompt ── */
+    .print-bar {
+      background: #f8faff;
+      border: 1px solid #dbeafe;
+      border-radius: 6px;
+      padding: 0.6rem 1rem;
+      margin-bottom: 1.2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 9pt;
+      color: #475569;
+    }
+    .print-btn {
+      background: #3b7fff;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      padding: 0.35rem 0.9rem;
+      font-size: 8.5pt;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .print-btn:hover { background: #2563eb; }
+    @media print { .print-bar { display: none; } }
+  </style>
+</head>
+<body>
+
+  <!-- Screen-only print prompt -->
+  <div class="print-bar no-print">
+    <span>To save as PDF: File → Print → Change destination to "Save as PDF" → Landscape orientation recommended.</span>
+    <button class="print-btn" onclick="window.print()">Print / Save as PDF</button>
+  </div>
+
+  <!-- Header -->
+  <header class="page-header">
+    <div class="header-left">
+      <h1>Futures Position Sizing Quick Reference</h1>
+      <p>CME & CBOT contract specifications for day traders and prop firm evaluators</p>
+    </div>
+    <div class="header-right">
+      <span class="brand">RiskBuddy</span>
+      <span class="brand-url">riskbuddy.app</span>
+    </div>
+  </header>
+
+  <!-- Formulas -->
+  <div class="formulas">
+    <div class="formula-box">
+      <div class="formula-label">Risk per Contract (Points)</div>
+      <div class="formula-eq">Risk $ = Stop (pts) × Point Value</div>
+      <div class="formula-note">e.g. ES 10-point stop → 10 × $50 = $500</div>
+    </div>
+    <div class="formula-box">
+      <div class="formula-label">Risk per Contract (Ticks)</div>
+      <div class="formula-eq">Risk $ = Stop (ticks) × Tick Value</div>
+      <div class="formula-note">e.g. ES 40-tick stop → 40 × $12.50 = $500</div>
+    </div>
+    <div class="formula-box">
+      <div class="formula-label">Max Contracts</div>
+      <div class="formula-eq">Contracts = ⌊ Risk Budget ÷ Risk per Contract ⌋</div>
+      <div class="formula-note">Always round down — never round up</div>
+    </div>
+    <div class="formula-box">
+      <div class="formula-label">Convert Points → Ticks</div>
+      <div class="formula-eq">Ticks = Points × (Point Value ÷ Tick Value)</div>
+      <div class="formula-note">e.g. ES: 1 pt × ($50 ÷ $12.50) = 4 ticks/point</div>
+    </div>
+  </div>
+
+  <!-- Contract Tables: two columns -->
+  <div class="two-col">
+
+    <!-- Left column: Equity Index -->
+    <div>
+      <div class="section-label">Equity Index</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Symbol</th>
+            <th>Contract</th>
+            <th class="r">Pt Value</th>
+            <th class="r">Tick Value</th>
+            <th class="r">Tks/Pt</th>
+            <th>Micro</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="sym">ES</td><td>E-mini S&amp;P 500</td><td class="r">$50.00</td><td class="r">$12.50</td><td class="r">4</td><td class="micro">MES</td></tr>
+          <tr><td class="sym">MES</td><td>Micro E-mini S&amp;P 500</td><td class="r">$5.00</td><td class="r">$1.25</td><td class="r">4</td><td class="micro">—</td></tr>
+          <tr><td class="sym">NQ</td><td>E-mini Nasdaq-100</td><td class="r">$20.00</td><td class="r">$5.00</td><td class="r">4</td><td class="micro">MNQ</td></tr>
+          <tr><td class="sym">MNQ</td><td>Micro E-mini Nasdaq-100</td><td class="r">$2.00</td><td class="r">$0.50</td><td class="r">4</td><td class="micro">—</td></tr>
+          <tr><td class="sym">YM</td><td>E-mini Dow Jones</td><td class="r">$5.00</td><td class="r">$5.00</td><td class="r">1</td><td class="micro">MYM</td></tr>
+          <tr><td class="sym">MYM</td><td>Micro E-mini Dow Jones</td><td class="r">$0.50</td><td class="r">$0.50</td><td class="r">1</td><td class="micro">—</td></tr>
+          <tr><td class="sym">RTY</td><td>E-mini Russell 2000</td><td class="r">$50.00</td><td class="r">$5.00</td><td class="r">10</td><td class="micro">M2K</td></tr>
+          <tr><td class="sym">M2K</td><td>Micro E-mini Russell 2000</td><td class="r">$5.00</td><td class="r">$0.50</td><td class="r">10</td><td class="micro">—</td></tr>
+          <tr><td class="sym">VX</td><td>CBOE VIX Futures</td><td class="r">$1,000.00</td><td class="r">$50.00</td><td class="r">20</td><td class="micro">—</td></tr>
+        </tbody>
+      </table>
+
+      <div class="section-label">Energy</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Symbol</th>
+            <th>Contract</th>
+            <th class="r">Pt Value</th>
+            <th class="r">Tick Value</th>
+            <th class="r">Tks/Pt</th>
+            <th>Micro</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="sym">CL</td><td>Crude Oil (WTI)</td><td class="r">$1,000.00</td><td class="r">$10.00</td><td class="r">100</td><td class="micro">MCL</td></tr>
+          <tr><td class="sym">MCL</td><td>Micro Crude Oil</td><td class="r">$100.00</td><td class="r">$1.00</td><td class="r">100</td><td class="micro">—</td></tr>
+          <tr><td class="sym">NG</td><td>Natural Gas</td><td class="r">$10,000.00</td><td class="r">$10.00</td><td class="r">1000</td><td class="micro">—</td></tr>
+        </tbody>
+      </table>
+
+      <div class="section-label">Treasury / Interest Rate</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Symbol</th>
+            <th>Contract</th>
+            <th class="r">Pt Value</th>
+            <th class="r">Tick Value</th>
+            <th>Tick Size</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="sym">ZN</td><td>10-Year T-Note</td><td class="r">$1,000.00</td><td class="r">$15.625</td><td>1/2 of 1/32</td></tr>
+          <tr><td class="sym">ZB</td><td>30-Year T-Bond</td><td class="r">$1,000.00</td><td class="r">$31.25</td><td>1/32</td></tr>
+          <tr><td class="sym">ZF</td><td>5-Year T-Note</td><td class="r">$1,000.00</td><td class="r">$7.8125</td><td>1/4 of 1/32</td></tr>
+          <tr><td class="sym">ZQ</td><td>Fed Funds Rate</td><td class="r">$4,167.00</td><td class="r">$20.835</td><td>0.005</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Right column: Metals, Currency, Crypto -->
+    <div>
+      <div class="section-label">Metals</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Symbol</th>
+            <th>Contract</th>
+            <th class="r">Pt Value</th>
+            <th class="r">Tick Value</th>
+            <th class="r">Tks/Pt</th>
+            <th>Micro</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="sym">GC</td><td>Gold</td><td class="r">$100.00</td><td class="r">$10.00</td><td class="r">10</td><td class="micro">MGC</td></tr>
+          <tr><td class="sym">MGC</td><td>Micro Gold</td><td class="r">$10.00</td><td class="r">$1.00</td><td class="r">10</td><td class="micro">—</td></tr>
+          <tr><td class="sym">SI</td><td>Silver</td><td class="r">$5,000.00</td><td class="r">$25.00</td><td class="r">200</td><td class="micro">SIL</td></tr>
+          <tr><td class="sym">SIL</td><td>Micro Silver</td><td class="r">$1,000.00</td><td class="r">$5.00</td><td class="r">200</td><td class="micro">—</td></tr>
+          <tr><td class="sym">HG</td><td>Copper</td><td class="r">$25,000.00</td><td class="r">$12.50</td><td class="r">—</td><td class="micro">MHG</td></tr>
+          <tr><td class="sym">MHG</td><td>Micro Copper</td><td class="r">$2,500.00</td><td class="r">$1.25</td><td class="r">—</td><td class="micro">—</td></tr>
+          <tr><td class="sym">PL</td><td>Platinum</td><td class="r">$50.00</td><td class="r">$5.00</td><td class="r">10</td><td class="micro">—</td></tr>
+        </tbody>
+      </table>
+
+      <div class="section-label">Currency</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Symbol</th>
+            <th>Contract</th>
+            <th class="r">Pt Value</th>
+            <th class="r">Tick Value</th>
+            <th>Micro</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="sym">6E</td><td>Euro FX</td><td class="r">$125,000.00</td><td class="r">$6.25</td><td class="micro">M6E</td></tr>
+          <tr><td class="sym">M6E</td><td>Micro Euro FX</td><td class="r">$12,500.00</td><td class="r">$1.25</td><td class="micro">—</td></tr>
+          <tr><td class="sym">6B</td><td>British Pound</td><td class="r">$62,500.00</td><td class="r">$6.25</td><td class="micro">—</td></tr>
+          <tr><td class="sym">6J</td><td>Japanese Yen</td><td class="r">$12,500,000</td><td class="r">$6.25</td><td class="micro">—</td></tr>
+          <tr><td class="sym">6C</td><td>Canadian Dollar</td><td class="r">$100,000.00</td><td class="r">$5.00</td><td class="micro">—</td></tr>
+        </tbody>
+      </table>
+
+      <div class="section-label">Crypto</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Symbol</th>
+            <th>Contract</th>
+            <th class="r">Pt Value</th>
+            <th class="r">Tick Value</th>
+            <th>Micro</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="sym">BTC</td><td>Bitcoin Futures</td><td class="r">$5.00</td><td class="r">$25.00</td><td class="micro">MBT</td></tr>
+          <tr><td class="sym">MBT</td><td>Micro Bitcoin Futures</td><td class="r">$0.10</td><td class="r">$0.10</td><td class="micro">—</td></tr>
+        </tbody>
+      </table>
+
+      <!-- Decision Matrix -->
+      <div class="section-label" style="margin-top:1rem;">The Decision Matrix</div>
+      <div class="matrix">
+        <div class="matrix-box m-green">
+          <div class="m-label">✓ Approved</div>
+          <p>Risk fits your budget. Max contracts calculated. Scale-in plan generated.</p>
+        </div>
+        <div class="matrix-box m-amber">
+          <div class="m-label">⚡ Alternative</div>
+          <p>Standard over limit. Micro equivalent evaluated at same stop distance.</p>
+        </div>
+        <div class="matrix-box m-red">
+          <div class="m-label">✕ Rejected</div>
+          <p>Even micro exceeds your ceiling. Sit out. Protect capital. No override.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Page Footer -->
+  <footer class="page-footer">
+    <span>Risk first. Size second. — The capital-first approach to futures position management.</span>
+    <span>riskbuddy.app &nbsp;|&nbsp; For educational purposes only. Not financial advice. Verify specs with your broker.</span>
+  </footer>
+
+</body>
+</html>
