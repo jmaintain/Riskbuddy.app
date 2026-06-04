@@ -1,0 +1,13 @@
+{
+  "name": "RiskBuddy",
+  "short_name": "RiskBuddy",
+  "description": "Futures Position Size Calculator",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b0e17",
+  "theme_color": "#3b7fff",
+  "icons": [
+    { "src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}
